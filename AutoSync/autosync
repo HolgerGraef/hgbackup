@@ -1,0 +1,75 @@
+#!/bin/bash
+
+red='\033[0;31m'
+green='\033[0;32m'
+NC='\033[0m' # No Color
+
+function headline {
+  echo -e "${green}$1"
+  echo -e "###############################################################################${NC}"
+}
+
+function keepheader {
+  read -r line; tput clear; echo "$line"
+  lines=$(tput lines)
+  tput sc; tput csr 2 $[lines-1]; tput rc # keep 2 lines
+  cat
+  tput sc; tput csr 0 $[lines-1]; tput rc
+}
+
+# parameters
+backupdrive=/media/holger/BACKUP
+timestamp=`date +%Y-%m-%d_%H:%M:%S`
+
+# introduction
+echo ### Autosync ###########################################################
+echo
+echo Das Backup wird gleich gestartet.
+echo Backuplaufwerk ist $backupdrive:
+echo
+echo ------------------------------------------------------------------------
+echo
+
+# check if back up disk is mounted
+if [ ! -d "$backupdrive" ]; then
+  echo "Back up disk is not mounted!"
+  echo
+  echo Bitte ENTER drücken...
+  read
+  exit
+fi
+
+echo An dieser Stelle kann das Programm noch durch das Schliessen dieses
+echo Fensters angehalten werden.
+echo
+
+echo Bitte ENTER drücken...
+read
+
+echo
+echo Zeitstempel: $timestamp
+echo
+
+# parameters for backup (of deleted files) and log
+backupsuffix=".backup_$timestamp"
+backupdir=$backupdrive/rsync_backup
+logfile=$backupdrive/rsync_log/rsync.$timestamp.log
+
+# putting together the configuration
+mainoptions="--recursive --links --times --devices --specials --hard-links --delete --ignore-errors"
+backupoptions="--backup --suffix=$backupsuffix --backup-dir=$backupdir"
+logoptions="--stats --itemize-changes --human-readable --progress --log-file=$logfile"
+
+# launch the actual back up
+(headline "Back up home directory..." && rsync $mainoptions $backupoptions $logoptions --exclude-from "/etc/autosync-exclude-list" /home/holger "$backupdrive") | keepheader
+
+# estimate the size of the backup
+echo -e "${green}"
+echo Estimating rsync backup size...
+echo Backup size: `du -h -s $backupdir | cut -f 1`
+echo -e "${NC}"
+date +%Y-%m-%d > ~/.lastautosync
+
+# done
+echo Done. Bitte ENTER drücken...
+read

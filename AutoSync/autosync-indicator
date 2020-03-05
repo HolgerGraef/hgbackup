@@ -1,0 +1,91 @@
+#!/usr/bin/python
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('AppIndicator3', '0.1')
+
+from gi.repository import Gtk, GLib
+from gi.repository import AppIndicator3 as AppIndicator
+from subprocess import call
+from datetime import date
+
+class IndicatorAutoSync:
+    def __init__(self):
+        # initialise deferral
+        self.deferred = 0
+    
+        self.ind = AppIndicator.Indicator.new(
+                            "indicator-autosync",
+                            "task-due",
+                            AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
+                            
+        # need to set this for indicator to be shown
+        self.ind.set_status (AppIndicator.IndicatorStatus.ACTIVE)
+
+        # have to give indicator a menu
+        self.menu = Gtk.Menu()
+
+        # build menu
+        item = Gtk.MenuItem()
+        item.set_label("Backup now")
+        item.connect("activate", self.handler_menu_backup)
+        item.show()
+        self.menu.append(item)
+        
+        item = Gtk.MenuItem()
+        item.set_label("Exit")
+        item.connect("activate", self.handler_menu_exit)
+        item.show()
+        self.menu.append(item)
+
+        self.menu.show()
+        self.ind.set_menu(self.menu)
+
+        # then start updating every 2 seconds
+        GLib.timeout_add_seconds(2, self.handler_timeout)
+
+    def handler_menu_backup(self, evt):
+        call(['gnome-terminal', '-x', 'bash', '/usr/bin/autosync'])
+        self.deferred = date.today() # make sure user isn't bothered during backup
+
+    def handler_menu_exit(self, evt):
+        Gtk.main_quit()
+
+    def handler_timeout(self):
+        # check if update should be done
+        # open ~/.lastautosync
+        try:
+          f = open('/home/holger/.lastautosync', 'r')
+        except IOError:
+          print 'ERROR: Could not open timestamp file'
+          return True
+          
+        # read date and calculate days since last backup
+        lastbackup = f.read()
+        f.close()
+        lastbackup = lastbackup.strip(' \n')
+        lastbackup = lastbackup.split('-')
+        now = date.today()
+        lastbackup = date(int(lastbackup[0]), int(lastbackup[1]), int(lastbackup[2]))
+        diff = now-lastbackup
+        days = int(diff.total_seconds()/(3600.*24.))
+        
+        # ask for action
+        if days > 6 and self.deferred != date.today():
+			dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.QUESTION, Gtk.ButtonsType.YES_NO, "Your last backup is %d days old.\nDo you want to back up your data now?"%days)
+
+			response = dialog.run()
+			dialog.destroy()
+
+			if response == Gtk.ResponseType.YES:
+				call(['gnome-terminal', '-x', 'bash', '/usr/bin/autosync'])
+					
+			self.deferred = date.today() # defer in both cases (otherwise will get more dialogs when backup has already started)
+        
+        return True
+
+    def main(self):
+        Gtk.main()
+
+if __name__ == "__main__":
+    ind = IndicatorAutoSync()
+    ind.main()
