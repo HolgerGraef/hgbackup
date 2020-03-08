@@ -103,7 +103,7 @@ class HGBCore:
         
         # check if there are src folders with identical name that back up to the same dst
         for name, target in self.config['targets'].items():
-            if target['dst'] == dst and os.path.basename(target['src']) == os.path.basename(src):
+            if target['dst'] == dst and os.path.basename(target['src']) == os.path.basename(src) and not target['src'] == src:
                 raise Exception("Conflicting dst with target {}.".format(name))
 
         # check if dst is connected
