@@ -301,14 +301,14 @@ class HGBGUI(QMainWindow):
 
     def periodicity_watcher(self):
         for i, (name, target) in enumerate(self.hgbcore.config['targets'].items()):
-            if target['per_backup'] is not None:
+            if target['per_backup'] is not None and target['last_backup'] is not None:
                 last_backup = datetime.strptime(target['last_backup'], "%Y-%m-%d_%H:%M:%S")
                 days = (datetime.now()-last_backup).days
                 notified = 'notified_backup' in target and target['notified_backup'] == datetime.now().date()
                 if days > target['per_backup'] and not notified:
                     Notify.Notification.new("HGBackup target {} has to be backed up. Last back up {} days ago.".format(name, days)).show()
                     target['notified_backup'] = datetime.now().date()
-            if target['per_check'] is not None:
+            if target['per_check'] is not None and target['last_check'] is not None:
                 last_check = datetime.strptime(target['last_check'], "%Y-%m-%d_%H:%M:%S")
                 days = (datetime.now()-last_check).days
                 notified = 'notified_check' in target and target['notified_check'] == datetime.now().date()
