@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Exec=/usr/bin/autosync-indicator
+Exec=hgbackup hidden
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
-Name[en_US]=AutoSync Indicator
-Name=AutoSync Indicator
+Name[en_US]=HGBackup
+Name=HGBackup
 Comment[en_US]=
 Comment=

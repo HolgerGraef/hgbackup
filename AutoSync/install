@@ -1,8 +1,0 @@
-#!/bin/bash
-cp autosync.desktop ~/.config/autostart
-cp autosync-indicator /usr/bin/
-cp autosync /usr/bin/
-cp autosync-exclude-list /etc/
-chmod +x ~/.config/autostart/autosync.desktop
-chmod +x /usr/bin/autosync-indicator
-chmod +x /usr/bin/autosync
