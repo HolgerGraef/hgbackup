@@ -272,18 +272,26 @@ class HGBCore:
     def verify_backup(self, target):
         # NB: could also do this with: md5sum --check example.ver
         #     but we want status updates
+        t0 = time.time()
         src, dst, verdict = self.prepare_target(target)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 
-        self.new_progress("Verifying backup {}".format(timestamp), len(verdict))
-        for key in verdict:
-            self.inc_progress()
-            proc = subprocess.Popen(['md5sum', os.path.join(dst, key)], stdout=subprocess.PIPE)
-            md5 = proc.stdout.readline().rstrip().decode('utf-8').split(' ', 1)[0]
-            if not md5 == verdict[key]:
-                print("\rInvalid checksum: {}".format(key))
-        self.done_progress()
+        logdir = os.path.join(dst, '.hgbackup', 'verification_log')
+        if not os.path.exists(logdir):
+            os.mkdir(logdir)
+        logfile = os.path.join(logdir, os.path.basename(src)+'_'+timestamp+'.log')
+        with open(logfile, "w") as log:
+            self.new_progress("Verifying backup {}".format(timestamp), len(verdict))
+            for key in verdict:
+                self.inc_progress()
+                proc = subprocess.Popen(['md5sum', os.path.join(dst, key)], stdout=subprocess.PIPE)
+                md5 = proc.stdout.readline().rstrip().decode('utf-8').split(' ', 1)[0]
+                if not md5 == verdict[key]:
+                    print("\rInvalid checksum: {}".format(key))
+                    log.write("Invalid checksum: {}, expected: {}, got: {}\n".format(key, verdict[key], md5))
+            log.write("Verification took {:.1f} seconds.\n".format(time.time()-t0))
+            self.done_progress()
 
         target['last_check'] = timestamp
         self.save_config()
