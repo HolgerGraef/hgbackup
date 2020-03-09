@@ -35,7 +35,7 @@ class HGBCore:
         if self.thread is None:
             print("\r{}/{}".format(self.i, self.length), end='')
         else:
-            if self.i/self.length*100 > self.percentage:
+            if self.i/self.length*100 >= self.percentage+1:
                 self.percentage += 1
                 self.thread.set_progress.emit(self.percentage)
 
