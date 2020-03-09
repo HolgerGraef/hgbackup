@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 from datetime import datetime
@@ -77,14 +78,6 @@ class WorkerThread(QThread):
         # set up console
         self.console = console
         self.new_console_data[QString].connect(self.console.write)
-        # set up progress dialog
-        self.progress = QProgressDialog(parent)
-        self.progress.setWindowModality(Qt.WindowModal)
-        self.progress.setWindowTitle("Working...")
-        self.progress.reset()
-        self.new_progress.connect(self.new_progress_handler)
-        self.set_progress.connect(self.progress.setValue)
-        self.done_progress.connect(self.progress.hide)
 
     def execute(self, fn, *args, **kwargs):
         self.fn = fn
@@ -101,15 +94,6 @@ class WorkerThread(QThread):
 
         sys.stdout, sys.stderr = std_sav
         sio.close()
-
-    def new_progress_handler(self, label, length):
-        if length == 1:         # only one element
-            self.progress.setMaximum(0)
-        else:
-            self.progress.setMaximum(100)
-        self.progress.setLabelText(label+"...")
-        self.progress.setValue(0)
-        self.progress.show()
 
 class HGBGUI(QMainWindow):
     quit = False
@@ -154,12 +138,21 @@ class HGBGUI(QMainWindow):
         for btn in [self.btnBackup, self.btnCheck, self.btnRepair, self.btnVerify]:
             btn.setEnabled(False)
 
-        # set up console
+        # set up progress dialog
+        self.progress = QProgressDialog(self)
+        self.progress.setWindowModality(Qt.WindowModal)
+        self.progress.setWindowTitle("Working...")
+        self.progress.reset()
+
+        # set up console and worker thread
         self.readonlyconsole = ReadOnlyConsole()
         self.wt = WorkerThread(self.readonlyconsole, parent=self)
         self.hgbcore.thread = self.wt
         self.wt.done_backup.connect(self.done_backup)
         self.wt.done_verify.connect(self.done_verify)
+        self.wt.new_progress.connect(self.new_progress_handler)
+        self.wt.set_progress.connect(self.set_progress_handler)
+        self.wt.done_progress.connect(self.done_progress_handler)
 
         # set up layout
         l2 = QHBoxLayout()
@@ -206,7 +199,7 @@ class HGBGUI(QMainWindow):
                     AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
         
         # need to set this for indicator to be shown
-        self.ind.set_status (AppIndicator.IndicatorStatus.ACTIVE)
+        self.ind.set_status(AppIndicator.IndicatorStatus.ACTIVE)
 
         # have to give indicator a menu
         self.menu = Gtk.Menu()
@@ -226,6 +219,27 @@ class HGBGUI(QMainWindow):
 
         self.menu.show()
         self.ind.set_menu(self.menu)
+
+    def new_progress_handler(self, label, length):
+        if length == 1:         # only one element
+            self.progress.setMaximum(0)
+            self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', 'unknown.png'))
+        else:
+            self.progress.setMaximum(100)
+            self.set_progress_handler(0)            
+        self.progress.setLabelText(label+"...")
+        self.progress.setValue(0)
+        self.progress.show()
+
+    def set_progress_handler(self, value):
+        if value not in range(101):
+            raise Exception("Invalid progress value")
+        self.progress.setValue(value)
+        self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', '{}.png'.format(value)))
+
+    def done_progress_handler(self):
+        self.progress.hide()
+        self.ind.set_icon("task-due")
 
     def closeEvent(self, evt):
         if not self.quit:
