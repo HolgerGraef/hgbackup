@@ -140,8 +140,13 @@ class HGBGUI(QMainWindow):
 
         # set up progress dialog
         self.progress = QProgressDialog(self)
+        # as long as cancelling is not implemented, remove the close button and the cancel button
+        self.progress.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
+        self.progress.setCancelButton(None)
+
         self.progress.setWindowModality(Qt.WindowModal)
         self.progress.setWindowTitle("Working...")
+        self.progress.setAutoReset(False)
         self.progress.reset()
 
         # set up console and worker thread
