@@ -138,26 +138,22 @@ class HGBGUI(QMainWindow):
         for btn in [self.btnBackup, self.btnCheck, self.btnRepair, self.btnVerify]:
             btn.setEnabled(False)
 
-        # set up progress dialog
-        self.progress = QProgressDialog(self)
-        # as long as cancelling is not implemented, remove the close button and the cancel button
-        self.progress.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
-        self.progress.setCancelButton(None)
-
-        self.progress.setWindowModality(Qt.WindowModal)
-        self.progress.setWindowTitle("Working...")
-        self.progress.setAutoReset(False)
-        self.progress.reset()
-
         # set up console and worker thread
         self.readonlyconsole = ReadOnlyConsole()
         self.wt = WorkerThread(self.readonlyconsole, parent=self)
         self.hgbcore.thread = self.wt
         self.wt.done_backup.connect(self.done_backup)
         self.wt.done_verify.connect(self.done_verify)
-        self.wt.new_progress.connect(self.new_progress_handler)
-        self.wt.set_progress.connect(self.set_progress_handler)
-        self.wt.done_progress.connect(self.done_progress_handler)
+        # make sure that signals from the worker thread are dealt with consecutively
+        # (e.g. that the set_progress_handler for 100% and the done_progress_handler
+        # are not executed simultaneously, which can lead to undesired behaviour)
+        # c.f. https://doc.qt.io/qt-5/threads-qobject.html
+        # and  https://www.riverbankcomputing.com/static/Docs/PyQt5/signals_slots.html
+        t = Qt.BlockingQueuedConnection
+        # make connections
+        self.wt.new_progress.connect(self.new_progress_handler, type=t)
+        self.wt.set_progress.connect(self.set_progress_handler, type=t)
+        self.wt.done_progress.connect(self.done_progress_handler, type=t)
 
         # set up layout
         l2 = QHBoxLayout()
@@ -226,15 +222,25 @@ class HGBGUI(QMainWindow):
         self.ind.set_menu(self.menu)
 
     def new_progress_handler(self, label, length):
+        # set up progress dialog
+        self.progress = QProgressDialog(self)
+        self.progress.setWindowModality(Qt.WindowModal)
+        self.progress.setWindowTitle("Working...")
+        self.progress.setLabelText(label+"...")
+        self.progress.setMinimumDuration(0)
+        self.progress.setAutoReset(False)
+        # as long as cancelling is not implemented, remove the close button and the cancel button
+        self.progress.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
+        self.progress.setCancelButton(None)
+        self.progress.reset()           # kill the initial 4 second timer (c.f. https://doc.qt.io/qt-5/qprogressdialog.html)
+
         if length == 1:         # only one element
             self.progress.setMaximum(0)
             self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', 'unknown.png'))
         else:
             self.progress.setMaximum(100)
-            self.set_progress_handler(0)            
-        self.progress.setLabelText(label+"...")
-        self.progress.setValue(0)
-        self.progress.show()
+            self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', '0.png'))
+        self.progress.setValue(0)       
 
     def set_progress_handler(self, value):
         if value not in range(101):
@@ -243,7 +249,7 @@ class HGBGUI(QMainWindow):
         self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', '{}.png'.format(value)))
 
     def done_progress_handler(self):
-        self.progress.hide()
+        self.progress.reset()
         self.ind.set_icon("task-due")
 
     def closeEvent(self, evt):
@@ -252,7 +258,12 @@ class HGBGUI(QMainWindow):
             evt.ignore()
 
     def handler_menu_show(self, evt):
+        self.setWindowFlags(self.windowFlags() ^ Qt.WindowStaysOnTopHint)
         self.show()
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+        self.show()
+        self.raise_()
+        self.activateWindow()
 
     def handler_menu_exit(self, evt):
         self.quit = True
