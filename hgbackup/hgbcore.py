@@ -285,6 +285,8 @@ class HGBCore:
             self.new_progress("Verifying backup {}".format(timestamp), len(verdict))
             for key in verdict:
                 self.inc_progress()
+                if verdict[key] == 'HL':
+                    continue
                 proc = subprocess.Popen(['md5sum', os.path.join(dst, key)], stdout=subprocess.PIPE)
                 md5 = proc.stdout.readline().rstrip().decode('utf-8').split(' ', 1)[0]
                 if not md5 == verdict[key]:
@@ -367,8 +369,15 @@ class HGBCore:
                     i = line.find('md5:')
                     f = line[i+4+32+1:]
                     verdict.pop(f, None)
+                # detect hard links
+                elif line.startswith('hf'):
+                    i = line.find('md5:')
+                    f = line[i+4+32+1:]
+                    j = f.find(' => ')
+                    f = f[:j]
+                    verdict[f] = 'HL'
                 # detect received files
-                if line.startswith('>f'):
+                elif line.startswith('>f'):
                     info = line[2:2+9]                    
                     i = line.find('md5:')
                     md5 = line[i+4:i+4+32]  # extract MD5 sum

@@ -19,9 +19,6 @@ cache subsequently:
 - careful when root (/) folder is added as backup source
 - estimate remaining time in progress
 - enable user to modify backup periodicities, excluded and optional list
-- hard links are created in backup destination, but no MD5 sum is recorded,
-  which provokes "MD5 sum not found" in check_verdict()
-  (they are not detected by os.path.islink()) -> fix this
 
 ### TODO GUI
 - do not "refocus" on window when launching a new progress if it's hidden
