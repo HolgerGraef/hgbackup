@@ -407,7 +407,9 @@ class HGBCore:
             line = proc.stdout.readline().rstrip()
             if not line:
                 break
-            size = int(line)
+            # if awk returns scientific notation (for large ints, c.f. awk -W version), we want to be sure to parse it correctly
+            line = line.decode("utf-8").replace(',', '.')
+            size = int(float(line))
         print("rsync backup size: {:.1f} GB".format(size/1000./1000./1000.))
         self.done_progress()
 
