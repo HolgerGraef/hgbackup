@@ -1,4 +1,4 @@
-![build](https://github.com/HolgerGraef/hgbackup/actions/workflows/python-package.yml/badge.svg)
+![build](https://github.com/HolgerGraef/hgbackup/actions/workflows/build.yml/badge.svg)
 
 ### Installing
 
