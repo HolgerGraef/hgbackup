@@ -4,12 +4,14 @@
 
 ### Installing
 
-    /usr/bin/python3 setup.py install --user
+    git clone https://github.com/HolgerGraef/hgbackup.git
+    cd hgbackup
+    python3 setup.py install --user
     cp hgbackup.desktop ~/.config/autostart/
 
 or, for development:
 
-    /usr/bin/python3 setup.py develop --user
+    python3 setup.py develop --user
 
 ### Updating icon cache
 
