@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="HGBackup",
-    version="0.0.1",
+    version="0.1.0",
     author="Holger Graef",
     author_email="holger.graef@gmail.com",
     description="rsync-based backup tool",
