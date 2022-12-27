@@ -24,8 +24,6 @@ try:
 except ImportError:
     QString = str
 
-from .hgbcore import config_file
-
 class ReadOnlyConsole(QTextEdit):
     data = ""
     newdata = False
@@ -347,4 +345,4 @@ class HGBGUI(QMainWindow):
                     target['notified_check'] = datetime.now().date()
 
     def open_config_file(self):
-        subprocess.call(['code', config_file])
+        subprocess.call(['code', self.hgbcore.config_file])

@@ -6,7 +6,7 @@ import uuid
 import time
 from datetime import datetime
 
-config_file = os.path.join(os.environ['HOME'], 'hgbackup.json')
+CONFIG_FILE = os.path.join(os.environ['HOME'], 'hgbackup.json')
 
 class HGBCore:
     i = 0
@@ -15,8 +15,9 @@ class HGBCore:
     thread = None
     config = {'targets': {}}
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         try:
+            self.config_file = config_file
             self.config = self.load_config()
         except Exception as e:
             print("Could not load config: "+str(e))
@@ -49,9 +50,9 @@ class HGBCore:
             self.thread.done_progress.emit()
 
     def load_config(self):
-        if not os.path.exists(config_file):
+        if not os.path.exists(self.config_file):
             self.save_config()
-        with open(config_file, 'r') as json_file:           # raises exception if file not found
+        with open(self.config_file, 'r') as json_file:           # raises exception if file not found
             data = json.load(json_file)                         # raises exception if JSON file corrupt
             if ('targets' not in data) or (not isinstance(data['targets'], dict)):
                 raise Exception("Could not find any targets")
@@ -79,7 +80,7 @@ class HGBCore:
             data['targets'][name] = {}
             for key in keys:
                 data['targets'][name][key] = target[key]
-        with open(config_file, 'w') as json_file:
+        with open(self.config_file, 'w') as json_file:
             json.dump(data, json_file, indent=4)
 
     def remove_target(self, targetname):
@@ -272,6 +273,7 @@ class HGBCore:
     def verify_backup(self, target):
         # NB: could also do this with: md5sum --check example.ver
         #     but we want status updates
+        verification_ok = True
         t0 = time.time()
         src, dst, verdict = self.prepare_target(target)
 
@@ -292,6 +294,7 @@ class HGBCore:
                 if not md5 == verdict[key]:
                     print("\rInvalid checksum: {}".format(key))
                     log.write("Invalid checksum: {}, expected: {}, got: {}\n".format(key, verdict[key], md5))
+                    verification_ok = False
             log.write("Verification took {:.1f} seconds.\n".format(time.time()-t0))
             self.done_progress()
 
@@ -300,6 +303,8 @@ class HGBCore:
 
         if self.thread:
             self.thread.done_verify.emit()
+
+        return verification_ok
 
     def run_backup(self, target, dry=False, full=False):
         src, dst, verdict = self.prepare_target(target)
