@@ -1,3 +1,5 @@
+![build](https://github.com/HolgerGraef/hgbackup/actions/workflows/python-package.yml/badge.svg)
+
 ### Installing
 
     /usr/bin/python3 setup.py install --user
