@@ -341,7 +341,24 @@ class HGBCore:
         logfile = os.path.join(logdir, os.path.basename(src)+'_'+timestamp+'.log')
         if not os.path.exists(logdir):
             os.mkdir(logdir)
-        rsync.extend(['--progress', '--itemize-changes', '--stats', '--log-file={}'.format(logfile)])
+        # extract from https://man7.org/linux/man-pages/man5/rsyncd.conf.5.html
+        # %C the full-file checksum if it is known for the
+        #  file. For older rsync protocols/versions, the
+        #  checksum was salted, and is thus not a useful value
+        #  (and is not displayed when that is the case). For
+        #  the checksum to output for a file, either the
+        #  --checksum option must be in-effect or the file
+        #  must have been transferred without a salted
+        #  checksum being used.  See the --checksum-choice
+        #  option for a way to choose the algorithm.
+
+        # extract from https://man7.org/linux/man-pages/man1/rsync.1.html
+        # When both sides of the transfer are at least 3.2.0, rsync
+        # chooses the first algorithm in the client's list of
+        # choices that is also in the server's list of choices.
+
+        # Therefore we should explicitly specify the MD5 algorithm.
+        rsync.extend(['--progress', '--itemize-changes', '--checksum-choice=md5', '--stats', '--log-file={}'.format(logfile)])
         if not dry:
             rsync.extend(['--out-format=%i md5:%C %n%L'])
         # backup options
