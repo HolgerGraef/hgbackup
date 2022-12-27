@@ -18,7 +18,7 @@ class HGBCore:
     def __init__(self, config_file=CONFIG_FILE):
         try:
             self.config_file = config_file
-            self.config = self.load_config()
+            self.load_config()
         except Exception as e:
             print("Could not load config: "+str(e))
 
@@ -71,7 +71,7 @@ class HGBCore:
                     raise Exception("Path does not exist or is not a directory: {}".format(target['src']))#
                 target['dst_connected'] = False
                 self.update_target_connection(target)
-        return data
+        self.config = data
 
     def save_config(self):
         data = {'targets': {}}          # make a dictionary to store config
@@ -151,6 +151,8 @@ class HGBCore:
             'optional': []
         }
         self.save_config()
+
+        self.load_config()
 
     def update_target_connection(self, target):
         dst_connected = True
