@@ -1,12 +1,12 @@
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class HGBCLI:
@@ -15,18 +15,27 @@ class HGBCLI:
 
     def list_targets(self):
         print("List of targets:")
-        for name, target in self.hgbcore.config['targets'].items():
-            print("{}{:<10}{}{:<40}{:<40}{:<8}".format(bcolors.BOLD, name, bcolors.ENDC, target['src'], target['dst'],
-                                            bcolors.OKGREEN+"[ready]"+bcolors.ENDC if target['dst_connected'] 
-                                            else bcolors.FAIL+"[N/A]"+bcolors.ENDC))
+        for name, target in self.hgbcore.config["targets"].items():
+            print(
+                "{}{:<10}{}{:<40}{:<40}{:<8}".format(
+                    bcolors.BOLD,
+                    name,
+                    bcolors.ENDC,
+                    target["src"],
+                    target["dst"],
+                    bcolors.OKGREEN + "[ready]" + bcolors.ENDC
+                    if target["dst_connected"]
+                    else bcolors.FAIL + "[N/A]" + bcolors.ENDC,
+                )
+            )
 
     def check_target(self, targetname):
-        if targetname not in self.hgbcore.config['targets']:
+        if targetname not in self.hgbcore.config["targets"]:
             print("Target {} is not defined.".format(targetname))
-        elif not self.hgbcore.config['targets'][targetname]['dst_connected']:
+        elif not self.hgbcore.config["targets"][targetname]["dst_connected"]:
             print("Target {} is not connected.".format(targetname))
         else:
-            return self.hgbcore.config['targets'][targetname]
+            return self.hgbcore.config["targets"][targetname]
         return None
 
     def parse_command_line(self, argv):
@@ -53,7 +62,7 @@ class HGBCLI:
             elif argv[1] == "dryrun-full":
                 self.hgbcore.run_backup(target, dry=True, full=True)
         elif len(argv) == 5 and argv[1] == "add":
-            if argv[2] in self.hgbcore.config['targets']:
+            if argv[2] in self.hgbcore.config["targets"]:
                 print("Target {} is already defined.".format(argv[2]))
             else:
                 self.hgbcore.add_target(argv[2], argv[3], argv[4])

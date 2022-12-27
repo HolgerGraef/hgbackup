@@ -4,18 +4,30 @@ import subprocess
 from datetime import datetime
 from io import BytesIO as StringIO
 import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('AppIndicator3', '0.1')
-gi.require_version('Notify', '0.7')
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("AppIndicator3", "0.1")
+gi.require_version("Notify", "0.7")
 
 from gi.repository import Gtk, GLib
 from gi.repository import AppIndicator3 as AppIndicator
 from gi.repository import Notify
 
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QLabel, QTableWidget,
-                             QTableWidgetItem, QHeaderView, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QProgressDialog,
-                             QTextEdit, QMenu, QAction)
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QWidget,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QProgressDialog,
+    QTextEdit,
+    QMenu,
+    QAction,
+)
 from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QThread, QTimer
 from PyQt5.QtGui import QPalette, QFont
 
@@ -23,6 +35,7 @@ try:
     from PyQt5.QtCore import QString
 except ImportError:
     QString = str
+
 
 class ReadOnlyConsole(QTextEdit):
     data = ""
@@ -34,7 +47,7 @@ class ReadOnlyConsole(QTextEdit):
         self.setAcceptRichText(False)
         self.setLineWrapMode(QTextEdit.NoWrap)
         font = QFont()
-        font.setFamily(u"DejaVu Sans Mono")
+        font.setFamily("DejaVu Sans Mono")
         font.setPointSize(10)
         self.setFont(font)
         p = self.palette()
@@ -57,8 +70,9 @@ class ReadOnlyConsole(QTextEdit):
     @pyqtSlot(str)
     def write(self, data):
         self.newdata = True
-        self.data += data.replace('\r', '')
+        self.data += data.replace("\r", "")
         self.data = self.data[-5000:]
+
 
 class WorkerThread(QThread):
     new_console_data = pyqtSignal(QString)
@@ -93,6 +107,7 @@ class WorkerThread(QThread):
         sys.stdout, sys.stderr = std_sav
         sio.close()
 
+
 class HGBGUI(QMainWindow):
     quit = False
 
@@ -109,10 +124,12 @@ class HGBGUI(QMainWindow):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
-        self.table.setRowCount(len(self.hgbcore.config['targets']))
+        self.table.setRowCount(len(self.hgbcore.config["targets"]))
         self.table.setColumnCount(6)
         self.table.verticalHeader().hide()
-        self.table.setHorizontalHeaderLabels(["name", "src", "dst", "connected", "last_backup", "last_check"])
+        self.table.setHorizontalHeaderLabels(
+            ["name", "src", "dst", "connected", "last_backup", "last_check"]
+        )
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.currentCellChanged.connect(self.onCellChanged)
 
@@ -163,18 +180,18 @@ class HGBGUI(QMainWindow):
         l.addWidget(self.readonlyconsole)
         cw = QWidget()
         cw.setLayout(l)
-        self.setCentralWidget(cw)                
+        self.setCentralWidget(cw)
 
         # populate table with targets
-        for i, (name, target) in enumerate(self.hgbcore.config['targets'].items()):
+        for i, (name, target) in enumerate(self.hgbcore.config["targets"].items()):
             self.table.setItem(i, 0, QTableWidgetItem(name))
-            self.table.setItem(i, 1, QTableWidgetItem(target['src']))
-            self.table.setItem(i, 2, QTableWidgetItem(target['dst']))
-            self.table.setItem(i, 3, QTableWidgetItem(''))
-            self.table.setItem(i, 4, QTableWidgetItem(target['last_backup']))
-            self.table.setItem(i, 5, QTableWidgetItem(target['last_check']))
+            self.table.setItem(i, 1, QTableWidgetItem(target["src"]))
+            self.table.setItem(i, 2, QTableWidgetItem(target["dst"]))
+            self.table.setItem(i, 3, QTableWidgetItem(""))
+            self.table.setItem(i, 4, QTableWidgetItem(target["last_backup"]))
+            self.table.setItem(i, 5, QTableWidgetItem(target["last_check"]))
             self.table.selectRow(0)
-            self.update_target_connection(i, name, target) 
+            self.update_target_connection(i, name, target)
 
         # set up target watcher
         self.timer = QTimer()
@@ -193,10 +210,9 @@ class HGBGUI(QMainWindow):
 
         # set up app indicator
         self.ind = AppIndicator.Indicator.new(
-                    "indicator-autosync",
-                    "task-due",
-                    AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
-        
+            "indicator-autosync", "task-due", AppIndicator.IndicatorCategory.SYSTEM_SERVICES
+        )
+
         # need to set this for indicator to be shown
         self.ind.set_status(AppIndicator.IndicatorStatus.ACTIVE)
 
@@ -224,27 +240,27 @@ class HGBGUI(QMainWindow):
         self.progress = QProgressDialog(self)
         self.progress.setWindowModality(Qt.WindowModal)
         self.progress.setWindowTitle("Working...")
-        self.progress.setLabelText(label+"...")
+        self.progress.setLabelText(label + "...")
         self.progress.setMinimumDuration(0)
         self.progress.setAutoReset(False)
         # as long as cancelling is not implemented, remove the close button and the cancel button
         self.progress.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
         self.progress.setCancelButton(None)
-        self.progress.reset()           # kill the initial 4 second timer (c.f. https://doc.qt.io/qt-5/qprogressdialog.html)
+        self.progress.reset()  # kill the initial 4 second timer (c.f. https://doc.qt.io/qt-5/qprogressdialog.html)
 
-        if length == 1:         # only one element
+        if length == 1:  # only one element
             self.progress.setMaximum(0)
-            self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', 'unknown.png'))
+            self.ind.set_icon(os.path.join(os.path.dirname(__file__), "pie", "unknown.png"))
         else:
             self.progress.setMaximum(100)
-            self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', '0.png'))
-        self.progress.setValue(0)       
+            self.ind.set_icon(os.path.join(os.path.dirname(__file__), "pie", "0.png"))
+        self.progress.setValue(0)
 
     def set_progress_handler(self, value):
         if value not in range(101):
             raise Exception("Invalid progress value")
         self.progress.setValue(value)
-        self.ind.set_icon(os.path.join(os.path.dirname(__file__), 'pie', '{}.png'.format(value)))
+        self.ind.set_icon(os.path.join(os.path.dirname(__file__), "pie", "{}.png".format(value)))
 
     def done_progress_handler(self):
         self.progress.reset()
@@ -272,22 +288,24 @@ class HGBGUI(QMainWindow):
 
     def get_current_target(self):
         targetname = self.table.item(self.table.currentRow(), 0).text()
-        return self.hgbcore.config['targets'][targetname]     
+        return self.hgbcore.config["targets"][targetname]
 
     def run_backup(self):
         self.wt.execute(self.hgbcore.run_backup, self.get_current_target())
-    
+
     def dryrun_backup(self):
         self.wt.execute(self.hgbcore.run_backup, self.get_current_target(), dry=True)
 
     def runfull_backup(self):
         self.wt.execute(self.hgbcore.run_backup, self.get_current_target(), full=True)
-    
+
     def dryrunfull_backup(self):
         self.wt.execute(self.hgbcore.run_backup, self.get_current_target(), dry=True, full=True)
-    
+
     def done_backup(self):
-        self.table.item(self.table.currentRow(), 4).setText(self.get_current_target()['last_backup'])
+        self.table.item(self.table.currentRow(), 4).setText(
+            self.get_current_target()["last_backup"]
+        )
 
     def check_backup(self):
         self.wt.execute(self.hgbcore.check_verdict, self.get_current_target())
@@ -299,12 +317,12 @@ class HGBGUI(QMainWindow):
         self.wt.execute(self.hgbcore.verify_backup, self.get_current_target())
 
     def done_verify(self):
-        self.table.item(self.table.currentRow(), 5).setText(self.get_current_target()['last_check'])
+        self.table.item(self.table.currentRow(), 5).setText(self.get_current_target()["last_check"])
 
     def update_buttons(self):
         target = self.get_current_target()
         enable = False
-        if target['dst_connected']:
+        if target["dst_connected"]:
             enable = True
         for btn in [self.btnBackup, self.btnCheck, self.btnRepair, self.btnVerify]:
             btn.setEnabled(enable)
@@ -312,37 +330,52 @@ class HGBGUI(QMainWindow):
     def update_target_connection(self, i, name, target):
         status, toggle = self.hgbcore.update_target_connection(target)
         if status:
-            self.table.item(i, 3).setText('ready')
+            self.table.item(i, 3).setText("ready")
             self.table.item(i, 3).setBackground(Qt.green)
         else:
-            self.table.item(i, 3).setText('N/A')
+            self.table.item(i, 3).setText("N/A")
             self.table.item(i, 3).setBackground(Qt.red)
         self.update_buttons()
         return status, toggle
 
     def folder_watcher(self):
-        for i, (name, target) in enumerate(self.hgbcore.config['targets'].items()):
+        for i, (name, target) in enumerate(self.hgbcore.config["targets"].items()):
             status, toggle = self.update_target_connection(i, name, target)
-            if not toggle:     # status did not change
+            if not toggle:  # status did not change
                 continue
-            Notify.Notification.new("HGBackup target {} {}connected.".format(name, "" if status else "dis")).show()
+            Notify.Notification.new(
+                "HGBackup target {} {}connected.".format(name, "" if status else "dis")
+            ).show()
 
     def periodicity_watcher(self):
-        for i, (name, target) in enumerate(self.hgbcore.config['targets'].items()):
-            if target['per_backup'] is not None and target['last_backup'] is not None:
-                last_backup = datetime.strptime(target['last_backup'], "%Y-%m-%d_%H:%M:%S")
-                days = (datetime.now()-last_backup).days
-                notified = 'notified_backup' in target and target['notified_backup'] == datetime.now().date()
-                if days > target['per_backup'] and not notified:
-                    Notify.Notification.new("HGBackup target {} has to be backed up. Last back up {} days ago.".format(name, days)).show()
-                    target['notified_backup'] = datetime.now().date()
-            if target['per_check'] is not None and target['last_check'] is not None:
-                last_check = datetime.strptime(target['last_check'], "%Y-%m-%d_%H:%M:%S")
-                days = (datetime.now()-last_check).days
-                notified = 'notified_check' in target and target['notified_check'] == datetime.now().date()
-                if days > target['per_check'] and not notified:
-                    Notify.Notification.new("HGBackup target {} has to be verified. Last verification {} days ago.".format(name, days)).show()
-                    target['notified_check'] = datetime.now().date()
+        for i, (name, target) in enumerate(self.hgbcore.config["targets"].items()):
+            if target["per_backup"] is not None and target["last_backup"] is not None:
+                last_backup = datetime.strptime(target["last_backup"], "%Y-%m-%d_%H:%M:%S")
+                days = (datetime.now() - last_backup).days
+                notified = (
+                    "notified_backup" in target
+                    and target["notified_backup"] == datetime.now().date()
+                )
+                if days > target["per_backup"] and not notified:
+                    Notify.Notification.new(
+                        "HGBackup target {} has to be backed up. Last back up {} days ago.".format(
+                            name, days
+                        )
+                    ).show()
+                    target["notified_backup"] = datetime.now().date()
+            if target["per_check"] is not None and target["last_check"] is not None:
+                last_check = datetime.strptime(target["last_check"], "%Y-%m-%d_%H:%M:%S")
+                days = (datetime.now() - last_check).days
+                notified = (
+                    "notified_check" in target and target["notified_check"] == datetime.now().date()
+                )
+                if days > target["per_check"] and not notified:
+                    Notify.Notification.new(
+                        "HGBackup target {} has to be verified. Last verification {} days ago.".format(
+                            name, days
+                        )
+                    ).show()
+                    target["notified_check"] = datetime.now().date()
 
     def open_config_file(self):
-        subprocess.call(['code', self.hgbcore.config_file])
+        subprocess.call(["code", self.hgbcore.config_file])

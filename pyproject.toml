@@ -1,0 +1,12 @@
+[tool.black]
+include = '\.py$'
+line-length = 100
+target-version = ['py310']
+exclude = '''
+/(
+    \.git
+  | build
+  | dist
+  | venv
+)/
+'''

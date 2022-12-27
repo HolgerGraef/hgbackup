@@ -13,15 +13,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/HolgerGraef/hgbackup",
     packages=setuptools.find_packages(),
-    package_data={
-        '': ['pie/*.png']
-    },
+    package_data={"": ["pie/*.png"]},
     include_package_data=True,
     classifiers=[
-        "Programming Language :: Python :: 3.6"
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.6" "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    entry_points={'console_scripts': ['hgbackup = hgbackup.hgbackup:main']}
+    entry_points={"console_scripts": ["hgbackup = hgbackup.hgbackup:main"]},
 )
