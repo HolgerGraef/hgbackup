@@ -1,4 +1,5 @@
 ![build](https://github.com/HolgerGraef/hgbackup/actions/workflows/build.yml/badge.svg)
+[![Flake8 Status](./reports/flake8/flake8.svg?dummy=8484744)](./reports/flake8/index.html)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ### Installing
@@ -16,6 +17,15 @@ In case you need to modify the icons in `hgbackup/pie/`, you should update the G
 cache subsequently:
 
     sudo gtk-update-icon-cache --ignore-theme-index --force --include-image-data /usr/share/icons/hicolor
+
+### Updating flake8 report and badge
+
+    pip install flake8 genbadge[flake8]
+    rm ./reports/flake8/flake8stats.txt
+    flake8 --tee --output-file ./reports/flake8/flake8stats.txt
+    genbadge flake8 \
+      --input-file ./reports/flake8/flake8stats.txt \
+      --output-file ./reports/flake8/flake8.svg
 
 ### TODO General
 - fix display of rsync progress for individual files

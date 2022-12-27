@@ -1,0 +1,25 @@
+[1m./hgbackup/hgbcli.py[m[36m:[m41[36m:[m5[36m:[m [1m[31mC901[m 'HGBCLI.parse_command_line' is too complex (14)
+[1m./hgbackup/hgbcore.py[m[36m:[m68[36m:[m24[36m:[m [1m[31mE713[m test for membership should be 'not in'
+[1m./hgbackup/hgbcore.py[m[36m:[m244[36m:[m5[36m:[m [1m[31mC901[m 'HGBCore.check_verdict' is too complex (14)
+[1m./hgbackup/hgbcore.py[m[36m:[m340[36m:[m5[36m:[m [1m[31mC901[m 'HGBCore.run_backup' is too complex (20)
+[1m./hgbackup/hgbcore.py[m[36m:[m473[36m:[m101[36m:[m [1m[31mE501[m line too long (128 > 100 characters)
+[1m./hgbackup/hgbgui.py[m[36m:[m12[36m:[m1[36m:[m [1m[31mF401[m 'gi.repository.GLib' imported but unused
+[1m./hgbackup/hgbgui.py[m[36m:[m12[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m16[36m:[m1[36m:[m [1m[31mF401[m 'PyQt5.QtWidgets.QLabel' imported but unused
+[1m./hgbackup/hgbgui.py[m[36m:[m16[36m:[m1[36m:[m [1m[31mF401[m 'PyQt5.QtWidgets.QAction' imported but unused
+[1m./hgbackup/hgbgui.py[m[36m:[m16[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m31[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m32[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m./hgbackup/hgbgui.py[m[36m:[m177[36m:[m9[36m:[m [1m[31mE741[m ambiguous variable name 'l'
+[1m./hgbackup/hgbgui.py[m[36m:[m249[36m:[m101[36m:[m [1m[31mE501[m line too long (115 > 100 characters)
+[1m./hgbackup/hgbgui.py[m[36m:[m374[36m:[m101[36m:[m [1m[31mE501[m line too long (103 > 100 characters)
+[1m./tests/test_main.py[m[36m:[m43[36m:[m69[36m:[m [1m[31mE712[m comparison to True should be 'if cond is True:' or 'if cond:'
+3     C901 'HGBCLI.parse_command_line' is too complex (14)
+6     E402 module level import not at top of file
+3     E501 line too long (128 > 100 characters)
+1     E712 comparison to True should be 'if cond is True:' or 'if cond:'
+1     E713 test for membership should be 'not in'
+1     E741 ambiguous variable name 'l'
+3     F401 'gi.repository.GLib' imported but unused
